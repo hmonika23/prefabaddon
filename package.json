@@ -44,7 +44,7 @@
     "eject-ts": "zx scripts/eject-typescript.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-     "generate-prefab-file-list": "node generate-prefab-file-list.cjs"
+     "generate-prefab-file-list": "node dist/generate-prefab-file-list.cjs"
   },
   "dependencies": {
     "@storybook/icons": "^1.2.10",
