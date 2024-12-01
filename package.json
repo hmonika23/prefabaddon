@@ -1,6 +1,6 @@
 {
   "name": "storybook-addon-downloadprefab",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "It will download a prefab zip",
   "keywords": [
     "storybook-addons",
@@ -32,7 +32,8 @@
     "dist/**/*",
     "README.md",
     "*.js",
-    "*.d.ts"
+    "*.d.ts",
+    "generate-prefab-file-list.cjs"
   ],
   "scripts": {
     "build": "tsup",
