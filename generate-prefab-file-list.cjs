@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const prefabDir = path.join(__dirname, "storybook-static/prefab");
-const outputPath = path.join(__dirname, "storybook-static/prefab-file-list.json");
+const prefabDir = path.join(__dirname, ".storybook/prefab");
+const outputPath = path.join(__dirname, ".storybook/prefab-file-list.json");
 
 const getAllFiles = (dir, prefix = "") => {
   const files = [];
