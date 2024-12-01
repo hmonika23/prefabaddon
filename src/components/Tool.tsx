@@ -17,32 +17,29 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
     const prefabFolder = zip.folder("prefab");
 
     try {
-      // Fetch the file list from public/prefab-file-list.json
-      const response = await fetch("prefab-file-list.json");
+      // Fetch the file list JSON
+      const response = await fetch("/.storybook/prefab-file-list.json");
       console.log("Response:", response);
-
-      if (!response.ok) throw new Error("File list not found at prefab-file-list.json");
-
-      const filePaths: string[] = await response.json(); // List of file names (e.g., ["file1.zip", "file2.zip"])
+      if (!response.ok) throw new Error("File list not found");
+      const filePaths: string[] = await response.json();
       console.log("File paths:", filePaths);
-
-      // Fetch and add each .zip file to the prefab folder in the zip
-      for (const filePath of filePaths) {
-        const fileResponse = await fetch(`prefab/${filePath}`);
+      // Fetch and add each file to the ZIP
+      for (const path of filePaths) {
+        const fileResponse = await fetch(`/.storybook/prefab/${path}`);
         if (fileResponse.ok) {
           const blob = await fileResponse.blob();
-          prefabFolder?.file(filePath, blob); // Add the file to the zip
+          prefabFolder?.file(path, blob); // Optional chaining in case folder creation fails
         } else {
-          console.error(`Failed to fetch file: ${filePath}`);
+          console.error(`Failed to fetch file: ${path}`);
         }
       }
 
-      // Generate the ZIP file as a Blob
+      // Generate the ZIP file
       const content = await zip.generateAsync({ type: "blob" });
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(content); // Create a URL for the generated zip file
-      link.download = "prefab.zip"; // Set the download name
-      link.click(); // Trigger the download
+      link.href = URL.createObjectURL(content);
+      link.download = "prefab.zip";
+      link.click();
 
       console.log("Download started for prefab.zip");
     } catch (error: unknown) {
@@ -50,15 +47,15 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
       console.error("Failed to create ZIP:", errorMessage);
       alert("An error occurred while creating the ZIP file.");
     }
-  }, []); // Only recreate the function if dependencies change
+  }, []);
 
   useEffect(() => {
     api.setAddonShortcut("addon/my-addon", {
       label: "Download prefab.zip [O]",
-      defaultShortcut: ["O"], // Default keyboard shortcut
-      actionName: "download_prefab", // Action name for the shortcut
-      showInMenu: false, // Do not show in menu, but allow keyboard shortcut
-      action: afterClick, // Associate the action with the click handler
+      defaultShortcut: ["O"],
+      actionName: "download_prefab",
+      showInMenu: false,
+      action: afterClick,
     });
   }, [afterClick, api]);
 
@@ -66,7 +63,7 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
     <IconButton
       key="addon/my-addon/tool"
       title="Download prefab.zip"
-      onClick={afterClick} // Trigger ZIP download when clicked
+      onClick={afterClick}
     >
       <DownloadIcon />
     </IconButton>
