@@ -4,7 +4,6 @@ import { IconButton } from "storybook/internal/components";
 import { DownloadIcon } from "@storybook/icons";
 import JSZip from "jszip"; // Ensure JSZip is installed: `npm install jszip`
 
-
 // Define props type for the Tool component
 interface ToolProps {
   api: API; // Explicitly type the Storybook API
@@ -18,20 +17,21 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
     const prefabFolder = zip.folder("prefab");
 
     try {
-      // Fetch the file list JSON from .storybook/prefab-file-list.json
-      const response = await fetch("/.storybook/prefab-file-list.json");
-      if (!response.ok) throw new Error("File list not found at /.storybook/prefab-file-list.json");
+      // Fetch the file list from .storybook/prefab-file-list.json
+      const response = await fetch("/prefab-file-list.json");
+      console.log("response", response);
+      if (!response.ok) throw new Error("File list not found at /prefab-file-list.json");
 
-      const filePaths: string[] = await response.json(); // Parse the file paths
-
-      // Fetch and add each file to the ZIP
-      for (const path of filePaths) {
-        const fileResponse = await fetch(`/.storybook/prefab/${path}`); // Access each file under storybook-static/prefab
+      const filePaths: string[] = await response.json(); // List of file names (e.g., ["file1.zip", "file2.zip"])
+    console.log("filePaths", filePaths);
+      // Fetch and add each .zip file to the prefab folder in the zip
+      for (const filePath of filePaths) {
+        const fileResponse = await fetch(`/${filePath}`);
         if (fileResponse.ok) {
           const blob = await fileResponse.blob();
-          prefabFolder?.file(path, blob); // Add the file to the ZIP under the prefab folder
+          prefabFolder?.file(filePath, blob); // Add the file to the zip
         } else {
-          console.error(`Failed to fetch file: ${path}`);
+          console.error(`Failed to fetch file: ${filePath}`);
         }
       }
 
