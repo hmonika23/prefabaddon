@@ -18,14 +18,14 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
 
     try {
       // Fetch the file list JSON
-      const response = await fetch("/.storybook/prefab-file-list.json");
+      const response = await fetch("/prefab-file-list.json");
       console.log("Response:", response);
       if (!response.ok) throw new Error("File list not found");
       const filePaths: string[] = await response.json();
       console.log("File paths:", filePaths);
       // Fetch and add each file to the ZIP
       for (const path of filePaths) {
-        const fileResponse = await fetch(`/.storybook/prefab/${path}`);
+        const fileResponse = await fetch(`/${path}`);
         if (fileResponse.ok) {
           const blob = await fileResponse.blob();
           prefabFolder?.file(path, blob); // Optional chaining in case folder creation fails
@@ -38,7 +38,7 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
       const content = await zip.generateAsync({ type: "blob" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(content);
-      link.download = "prefab.zip";
+      link.download = "componets.zip";
       link.click();
 
       console.log("Download started for prefab.zip");
