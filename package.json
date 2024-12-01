@@ -1,6 +1,6 @@
 {
   "name": "storybook-addon-downloadprefab",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "It will download a prefab zip",
   "keywords": [
     "storybook-addons",
