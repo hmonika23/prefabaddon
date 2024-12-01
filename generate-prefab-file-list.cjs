@@ -2,10 +2,9 @@ const fs = require("fs");
 const path = require("path");
 
 // Define source and destination directories
-const sourceDir = path.join(__dirname, "../../build/prefab");
-const destinationDir = path.join(__dirname, "../../.storybook/prefab");
+const sourceDir = path.join(__dirname, "../../build/prefab"); // Source directory
+const destinationDir = path.join(__dirname, "../../public/prefab"); // Destination directory for static files
 const fileListPath = path.join(destinationDir, "prefab-file-list.json");
-
 // Ensure destination directory exists
 if (!fs.existsSync(destinationDir)) {
   fs.mkdirSync(destinationDir, { recursive: true });
@@ -23,10 +22,13 @@ const copyZipFilesAndGenerateList = (source, destination) => {
       zipFiles.push(...copyZipFilesAndGenerateList(fullPath, destination)); // Collect zip file paths from subdirectories
     } else if (file.endsWith(".zip")) {
       // Copy only .zip files to the destination
-      const destinationPath = path.join(destination, file);
-      fs.copyFileSync(fullPath, destinationPath);
-      console.log(`Copied: ${file}`);
-      zipFiles.push(path.relative(destination, destinationPath)); // Add relative path to the list
+      const relativePath = path.relative(sourceDir, fullPath); // Preserve relative structure
+      const destinationPath = path.join(destination, relativePath);
+
+      fs.mkdirSync(path.dirname(destinationPath), { recursive: true }); // Ensure destination subdirectory exists
+      fs.copyFileSync(fullPath, destinationPath); // Copy the file
+      console.log(`Copied: ${relativePath}`);
+      zipFiles.push(relativePath); // Add the relative path to the list
     }
   });
 

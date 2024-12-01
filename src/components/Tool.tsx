@@ -17,16 +17,18 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
     const prefabFolder = zip.folder("prefab");
 
     try {
-      // Fetch the file list from .storybook/prefab-file-list.json
-      const response = await fetch("/prefab-file-list.json");
-      console.log("response", response);
-      if (!response.ok) throw new Error("File list not found at /prefab-file-list.json");
+      // Fetch the file list from public/prefab-file-list.json
+      const response = await fetch("prefab-file-list.json");
+      console.log("Response:", response);
+
+      if (!response.ok) throw new Error("File list not found at prefab-file-list.json");
 
       const filePaths: string[] = await response.json(); // List of file names (e.g., ["file1.zip", "file2.zip"])
-    console.log("filePaths", filePaths);
+      console.log("File paths:", filePaths);
+
       // Fetch and add each .zip file to the prefab folder in the zip
       for (const filePath of filePaths) {
-        const fileResponse = await fetch(`/${filePath}`);
+        const fileResponse = await fetch(`prefab/${filePath}`);
         if (fileResponse.ok) {
           const blob = await fileResponse.blob();
           prefabFolder?.file(filePath, blob); // Add the file to the zip
@@ -48,7 +50,7 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
       console.error("Failed to create ZIP:", errorMessage);
       alert("An error occurred while creating the ZIP file.");
     }
-  }, []); // Only recreate the function if api changes
+  }, []); // Only recreate the function if dependencies change
 
   useEffect(() => {
     api.setAddonShortcut("addon/my-addon", {
