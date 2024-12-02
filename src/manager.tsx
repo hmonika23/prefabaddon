@@ -19,6 +19,7 @@ addons.register(ADDON_ID, (api) => {
     title: "My addon",
     match: ({ viewMode, tabId }) =>
       !!((viewMode && viewMode.match(/^(story)$/)) || tabId === TAB_ID),
+   
     render: () => <Tool api={api} />,
   });
 
