@@ -1,7 +1,8 @@
 {
   "name": "storybook-addon-downloadprefab",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "It will download a prefab zip",
+  "main": "addon/index.cjs",
   "keywords": [
     "storybook-addons",
     "storybook-addons"
