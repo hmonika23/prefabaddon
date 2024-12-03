@@ -31,7 +31,7 @@ export const Tool = memo(function MyAddonSelector({ api }: ToolProps) {
     }
 
     // Construct the zip URL based on the extracted component name
-    const zipUrl = `/prefabs/${componentName}.zip`;
+    const zipUrl = `/${componentName}.zip`;
 
     try {
       const response = await fetch(zipUrl);
