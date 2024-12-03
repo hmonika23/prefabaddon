@@ -3,7 +3,7 @@ const path = require("path");
 
 // Define source and destination directories
 const sourceDir = path.join(__dirname, "../../build/prefab"); // Source directory
-const destinationDir = path.join(__dirname, "../../public"); // Destination directory for static files
+const destinationDir = path.join(__dirname, "../../public/prefabs"); // Destination directory for static files
 const fileListPath = path.join(__dirname, "../../public/prefab-file-list.json");
 // Ensure destination directory exists
 if (!fs.existsSync(destinationDir)) { 
