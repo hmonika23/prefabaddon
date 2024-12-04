@@ -2,97 +2,66 @@ import * as fs from 'fs';
 import * as path from 'path';
 import glob from 'glob';
 
-interface ComponentProp {
-  name: string;
-  description?: string;
-  type: string;
-  isList?: boolean;
-  defaultValue?: any;
-}
-
-interface ComponentConfig {
-  name: string;
-  version: string;
-  displayName: string;
-  baseDir: string;
-  module: string;
-  include: string[];
-  props: ComponentProp[];
-  packages: any[];
-}
-
-const generatePropsFromArgTypes = (argTypes: any): ComponentProp[] => {
-  return Object.entries(argTypes).map(([key, value]: [string, any]) => ({
-    name: key,
-    description: value.description || '',
-    type: value.type?.name || 'string',
-    isList: value.type?.name === 'array',
-    defaultValue: value.defaultValue,
-  }));
-};
-
-const extractFieldsFromStoryFile = (fileContent: string): { title?: string; argTypes?: any } => {
-  const titleMatch = fileContent.match(/title:\s*['"]([^'"]+)['"]/);
+const extractArgTypes = (fileContent: string) => {
+  // Use regex to find the `argTypes` object in the file
   const argTypesMatch = fileContent.match(/argTypes:\s*({[\s\S]*?})/);
 
+  console.log('argTypesMatch',argTypesMatch);
   if (argTypesMatch) {
+    const argTypesString = argTypesMatch[1]
+      .replace(/(\w+):/g, '"$1":') // Add quotes around keys
+      .replace(/: (\w+)/g, ': "$1"'); // Add quotes around non-string values if needed
     try {
-      // Safely evaluate `argTypes` using the `Function` constructor
-      const argTypes = new Function(`return ${argTypesMatch[1]}`)();
-      return {
-        title: titleMatch ? titleMatch[1] : undefined,
-        argTypes,
-      };
+      return JSON.parse(argTypesString);
     } catch (error) {
-      console.error('Error evaluating argTypes:', error);
+      console.error('Error parsing argTypes:', error);
     }
   }
-
-  return {
-    title: titleMatch ? titleMatch[1] : undefined,
-    argTypes: undefined,
-  };
+  return null; // Return null if no argTypes found
 };
 
 const generateJsonFile = () => {
   try {
     const storybookRoot = process.cwd(); // Root directory of the Storybook project
-    const storiesGlob = path.join(storybookRoot, 'components/**/*.stories.@(js|jsx|ts|tsx)');
+    const storiesGlob = path.join(storybookRoot, 'src/**/*.stories.@(js|jsx|ts|tsx)');
     const outputFilePath = path.join(storybookRoot, 'wmprefab-config.json');
 
-    const components: ComponentConfig[] = [];
+    const components: Array<any> = [];
 
+    // Find all story files
     const storyFiles = glob.sync(storiesGlob);
     console.log(`Found ${storyFiles.length} story files.`);
 
     for (const file of storyFiles) {
-      try {
-        const fileContent = fs.readFileSync(file, 'utf-8'); // Read the file as plain text
-        const { title, argTypes } = extractFieldsFromStoryFile(fileContent);
+      const fileContent = fs.readFileSync(file, 'utf-8');
+      const componentName = path.basename(file, path.extname(file)).toLowerCase();
 
-        if (argTypes) {
-          const componentName = path.basename(file, path.extname(file)).toLowerCase();
-          const props = generatePropsFromArgTypes(argTypes);
+      // Extract argTypes from the file content
+      const argTypes = extractArgTypes(fileContent);
 
-          components.push({
-            name: componentName,
-            version: '1.0.0',
-            displayName: title || componentName,
-            baseDir: './components',
-            module: `require('./${componentName}/${componentName}').default`,
-            include: [`./${componentName}/${componentName}.js`],
-            props,
-            packages: [],
-          });
-        } else {
-          console.warn(`No argTypes found in story file: ${file}`);
-        }
-      } catch (error) {
-        console.error(`Error processing story file: ${file}`);
-        console.error(`File content:\n${fs.readFileSync(file, 'utf-8')}`);
-      }
+      // Convert argTypes to the `props` structure
+      const props = argTypes
+        ? Object.entries(argTypes).map(([key, value]: [string, any]) => ({
+            name: key,
+            type: value.type?.name || 'string', // Default type is `string`
+            description: value.description || '',
+            defaultValue: value.defaultValue || null,
+          }))
+        : [];
+
+      components.push({
+        name: componentName,
+        version: '1.0.0',
+        displayName: componentName,
+        baseDir: './components',
+        module: `require('./${componentName}/${componentName}').default`,
+        include: [`./${componentName}/${componentName}.js`],
+        props,
+        packages: [],
+      });
     }
 
+    // Write to JSON file
     const jsonData = { components };
     fs.writeFileSync(outputFilePath, JSON.stringify(jsonData, null, 2));
     console.log(`Generated JSON file at: ${outputFilePath}`);
