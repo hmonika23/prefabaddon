@@ -21,14 +21,41 @@ interface ComponentConfig {
   packages: any[];
 }
 
-const generatePropsFromArgTypes = (argTypes: Record<string, any>): ComponentProp[] => {
-  return Object.entries(argTypes).map(([key, value]) => ({
+const generatePropsFromArgTypes = (argTypes: any): ComponentProp[] => {
+  return Object.entries(argTypes).map(([key, value]: [string, any]) => ({
     name: key,
     description: value.description || '',
     type: value.type?.name || 'string',
     isList: value.type?.name === 'array',
     defaultValue: value.defaultValue,
   }));
+};
+
+const extractFieldsFromStoryFile = (fileContent: string): { title?: string; argTypes?: any } => {
+  const titleMatch = fileContent.match(/title:\s*['"]([^'"]+)['"]/);
+  const argTypesMatch = fileContent.match(/argTypes:\s*({[\s\S]*?})/);
+
+  if (argTypesMatch) {
+    try {
+      // Use `JSON.parse` to safely parse the `argTypes` object
+      const argTypes = JSON.parse(
+        argTypesMatch[1]
+          .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":') // Ensure keys are properly quoted
+          .replace(/'/g, '"') // Replace single quotes with double quotes
+      );
+      return {
+        title: titleMatch ? titleMatch[1] : undefined,
+        argTypes,
+      };
+    } catch (error) {
+      console.error('Error parsing argTypes:', error);
+    }
+  }
+
+  return {
+    title: titleMatch ? titleMatch[1] : undefined,
+    argTypes: undefined,
+  };
 };
 
 const generateJsonFile = () => {
@@ -44,19 +71,17 @@ const generateJsonFile = () => {
 
     for (const file of storyFiles) {
       try {
-        const storyModule = require(file); // Dynamically require the story file
-        const storyDefaultExport = storyModule.default;
+        const fileContent = fs.readFileSync(file, 'utf-8'); // Read the file as plain text
+        const { title, argTypes } = extractFieldsFromStoryFile(fileContent);
 
-        if (storyDefaultExport && storyDefaultExport.argTypes) {
-          const argTypes = storyDefaultExport.argTypes;
+        if (argTypes) {
           const componentName = path.basename(file, path.extname(file)).toLowerCase();
-
           const props = generatePropsFromArgTypes(argTypes);
 
           components.push({
             name: componentName,
             version: '1.0.0',
-            displayName: storyDefaultExport.title || componentName,
+            displayName: title || componentName,
             baseDir: './components',
             module: `require('./${componentName}/${componentName}').default`,
             include: [`./${componentName}/${componentName}.js`],
@@ -64,7 +89,7 @@ const generateJsonFile = () => {
             packages: [],
           });
         } else {
-          console.warn(`No argTypes found in story default export for: ${file}`);
+          console.warn(`No argTypes found in story file: ${file}`);
         }
       } catch (error) {
         console.error(`Error processing story file: ${file}`, error);
