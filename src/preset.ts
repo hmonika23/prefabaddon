@@ -37,18 +37,14 @@ const extractFieldsFromStoryFile = (fileContent: string): { title?: string; argT
 
   if (argTypesMatch) {
     try {
-      // Use `JSON.parse` to safely parse the `argTypes` object
-      const argTypes = JSON.parse(
-        argTypesMatch[1]
-          .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":') // Ensure keys are properly quoted
-          .replace(/'/g, '"') // Replace single quotes with double quotes
-      );
+      // Safely evaluate `argTypes` using the `Function` constructor
+      const argTypes = new Function(`return ${argTypesMatch[1]}`)();
       return {
         title: titleMatch ? titleMatch[1] : undefined,
         argTypes,
       };
     } catch (error) {
-      console.error('Error parsing argTypes:', error);
+      console.error('Error evaluating argTypes:', error);
     }
   }
 
@@ -92,7 +88,8 @@ const generateJsonFile = () => {
           console.warn(`No argTypes found in story file: ${file}`);
         }
       } catch (error) {
-        console.error(`Error processing story file: ${file}`, error);
+        console.error(`Error processing story file: ${file}`);
+        console.error(`File content:\n${fs.readFileSync(file, 'utf-8')}`);
       }
     }
 
