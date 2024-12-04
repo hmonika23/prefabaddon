@@ -8,7 +8,7 @@ const generateJsonFile = () => {
     const storybookRoot = process.cwd(); // Root directory of the Storybook project
 
     console.log("storybookRoot",storybookRoot);
-    const storiesGlob = path.join(storybookRoot, 'src/**/*.stories.@(js|jsx|ts|tsx)');
+    const storiesGlob = path.join(storybookRoot, 'components/**/*.stories.@(js|jsx|ts|tsx)');
 
     console.log("storiesGlob", storiesGlob);
     const outputFilePath = path.join(storybookRoot, 'wmprefab-config.json');
