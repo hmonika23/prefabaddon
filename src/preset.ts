@@ -3,21 +3,26 @@ import * as path from 'path';
 import glob from 'glob';
 
 const extractArgTypes = (fileContent: string) => {
-  // Use regex to find the `argTypes` object in the file
-  const argTypesMatch = fileContent.match(/argTypes:\s*({[\s\S]*?})/);
+  // Extract the argTypes block with regex
+console.log("fileContent",fileContent);
 
-  console.log('argTypesMatch',argTypesMatch);
+  const argTypesMatch = fileContent.match(/argTypes:\s*{([\s\S]*?)}/);
+
+  console.log("argTypesMatch", argTypesMatch);
+
   if (argTypesMatch) {
-    const argTypesString = argTypesMatch[1]
-      .replace(/(\w+):/g, '"$1":') // Add quotes around keys
-      .replace(/: (\w+)/g, ': "$1"'); // Add quotes around non-string values if needed
     try {
-      return JSON.parse(argTypesString);
+      // Manually process the argTypes block
+      const argTypesString = `{${argTypesMatch[1]}}`;
+
+      // Safely interpret the argTypes as an object
+      const argTypes = eval(`(${argTypesString})`);
+      return argTypes;
     } catch (error) {
-      console.error('Error parsing argTypes:', error);
+      console.error('Error evaluating argTypes:', error);
     }
   }
-  return null; // Return null if no argTypes found
+  return null; // Return null if argTypes not found
 };
 
 const generateJsonFile = () => {
@@ -34,11 +39,12 @@ const generateJsonFile = () => {
 
     for (const file of storyFiles) {
       const fileContent = fs.readFileSync(file, 'utf-8');
+      console.log(`Processing file: ${file}`);
       const componentName = path.basename(file, path.extname(file)).toLowerCase();
-
+          console.log(`Component name: ${componentName}`);
       // Extract argTypes from the file content
       const argTypes = extractArgTypes(fileContent);
-
+        console.log(`argTypes: ${argTypes}`);
       // Convert argTypes to the `props` structure
       const props = argTypes
         ? Object.entries(argTypes).map(([key, value]: [string, any]) => ({
