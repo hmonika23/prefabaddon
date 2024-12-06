@@ -29,6 +29,7 @@ interface Component {
 const generateJsonFile = async (): Promise<void> => {
   try {
     const storybookRoot = process.cwd(); // Root directory of the Storybook project
+    console.log(`Storybook root directory: ${storybookRoot}`);
     const storiesGlob = path.join(
       storybookRoot,
       "components/**/*.stories.@(js|jsx|ts|tsx)"
