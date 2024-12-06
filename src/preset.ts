@@ -31,7 +31,7 @@ const generateJsonFile = async (): Promise<void> => {
     const storybookRoot = process.cwd(); // Root directory of the Storybook project
     const storiesGlob = path.join(
       storybookRoot,
-      "src/**/*.stories.@(js|jsx|ts|tsx)"
+      "components/**/*.stories.@(js|jsx|ts|tsx)"
     );
     const outputFilePath = path.join(storybookRoot, "wmprefab-config.json");
 
