@@ -1,6 +1,6 @@
 {
   "name": "storybook-addon-downloadprefab",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "It will download a prefab zip",
   "main": "addon/index.cjs",
   "keywords": [
@@ -34,7 +34,8 @@
     "README.md",
     "*.js",
     "*.d.ts",
-    "generate-prefab-file-list.cjs"
+    "generate-prefab-file-list.cjs",
+    "generateConfig.cjs"
   ],
   "scripts": {
     "build": "tsup",
