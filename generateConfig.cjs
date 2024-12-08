@@ -3,23 +3,26 @@ const path = require('path');
 const glob = require('glob');
 const babelParser = require('@babel/parser');
 
+// Function to get all .stories.js files from the base directory
 const getStoriesFiles = (baseDir) => {
-
-  console.log('baseDir', baseDir);
+  console.log('Searching for story files in:', baseDir);
   return new Promise((resolve, reject) => {
     glob(`${baseDir}/**/*.stories.js`, (err, files) => {
-
-      console.log('files', files);
-      if (err) reject(err);
-      else resolve(files);
+      if (err) {
+        reject(err);
+      } else {
+        console.log('Found story files:', files);
+        resolve(files);
+      }
     });
   });
 };
 
+// Function to extract metadata from the parsed code
 const extractMetadata = (code, filePath) => {
   const ast = babelParser.parse(code, {
     sourceType: 'module',
-    plugins: ['jsx', 'flow', 'typescript'],
+    plugins: ['jsx'], // For JSX support in .js files
   });
 
   const metadata = {
@@ -67,11 +70,14 @@ const extractMetadata = (code, filePath) => {
   return metadata;
 };
 
+// Main function to generate wmprefabconfig.json
 const generatePrefabConfig = async () => {
-  const baseDir = path.resolve(process.cwd(), './src'); // Resolve from the project's root
-  console.log('baseDir', baseDir);
-  const outputPath = path.resolve(process.cwd(), './wmprefabconfig.json'); // Output location
-   console.log('outputPath', outputPath);
+  const baseDir = path.resolve(process.cwd(), './src'); // Base directory for story files
+  const outputPath = path.resolve(process.cwd(), './wmprefabconfig.json'); // Output file location
+
+  console.log('Base directory:', baseDir);
+  console.log('Output path:', outputPath);
+
   try {
     const storiesFiles = await getStoriesFiles(baseDir);
     const components = [];
@@ -79,6 +85,7 @@ const generatePrefabConfig = async () => {
     for (const file of storiesFiles) {
       const code = fs.readFileSync(file, 'utf-8');
       const metadata = extractMetadata(code, file);
+
       components.push({
         name: metadata.name,
         version: '1.0.0',
@@ -99,4 +106,5 @@ const generatePrefabConfig = async () => {
   }
 };
 
+// Run the script
 generatePrefabConfig();

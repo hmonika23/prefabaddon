@@ -1,0 +1,16 @@
+{
+  "components": [
+    {
+      "name": "button",
+      "version": "1.0.0",
+      "displayName": "BUTTON",
+      "baseDir": "./components",
+      "module": "require('./button/button').default",
+      "include": [
+        "./button/button.js"
+      ],
+      "props": [],
+      "packages": []
+    }
+  ]
+}
