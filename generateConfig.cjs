@@ -3,26 +3,25 @@ const path = require('path');
 const glob = require('glob');
 const babelParser = require('@babel/parser');
 
-// Function to get all .stories.js files from the base directory
+// Function to get all .stories.js files synchronously
 const getStoriesFiles = (baseDir) => {
-  console.log('Searching for story files in:', baseDir);
-  return new Promise((resolve, reject) => {
-    glob(`${baseDir}/**/*.stories.js`, (err, files) => {
-      if (err) {
-        reject(err);
-      } else {
-        console.log('Found story files:', files);
-        resolve(files);
-      }
-    });
-  });
+  // const pattern = `${baseDir.replace(/\\/g, '/')}/**/*.stories.js`;
+
+  const pattern = `${baseDir.replace(/\\/g, '/')}/**/*.stories.{js,tsx}`;
+
+  console.log('Using glob pattern:', pattern);
+
+  const files = glob.sync(pattern);
+  console.log('Found story files:', files);
+
+  return files;
 };
 
 // Function to extract metadata from the parsed code
 const extractMetadata = (code, filePath) => {
   const ast = babelParser.parse(code, {
     sourceType: 'module',
-    plugins: ['jsx'], // For JSX support in .js files
+    plugins: ['typescript','jsx'], // For JSX support in .js files
   });
 
   const metadata = {
@@ -47,7 +46,26 @@ const extractMetadata = (code, filePath) => {
                 details.description = detail.value.value;
               }
               if (detail.key.name === 'defaultValue') {
-                details.defaultValue = detail.value.value;
+                // Handle arrays, objects, and primitives
+                if (detail.value.type === 'ArrayExpression') {
+                  details.defaultValue = detail.value.elements.map((el) =>
+                    el.type === 'ArrayExpression'
+                      ? el.elements.map((subEl) => subEl.value)
+                      : el.value
+                  );
+                  details.isList = true; // Mark as a list if it's an array
+                  details.type = 'object'; // Use 'object' for structured data
+                } else if (detail.value.type === 'ObjectExpression') {
+                  details.defaultValue = {};
+                  detail.value.properties.forEach((objProp) => {
+                    details.defaultValue[objProp.key.name] =
+                      objProp.value.value;
+                  });
+                  details.type = 'object';
+                } else {
+                  details.defaultValue = detail.value.value;
+                  details.type = typeof detail.value.value;
+                }
               }
               if (detail.key.name === 'type') {
                 details.type = detail.value.properties
@@ -70,21 +88,22 @@ const extractMetadata = (code, filePath) => {
   return metadata;
 };
 
+
 // Main function to generate wmprefabconfig.json
 const generatePrefabConfig = async () => {
-  const baseDir = path.resolve(process.cwd(), './src'); // Base directory for story files
-  const outputPath = path.resolve(process.cwd(), './wmprefabconfig.json'); // Output file location
+  const baseDir = path.resolve(process.cwd(), './components'); // Base directory for story files
+  const outputPath = path.resolve(process.cwd(), './wmprefab.config.json'); // Output file location
 
   console.log('Base directory:', baseDir);
   console.log('Output path:', outputPath);
 
   try {
-    const storiesFiles = await getStoriesFiles(baseDir);
+    const storiesFiles = getStoriesFiles(baseDir); // Fetch story files
     const components = [];
 
     for (const file of storiesFiles) {
-      const code = fs.readFileSync(file, 'utf-8');
-      const metadata = extractMetadata(code, file);
+      const code = fs.readFileSync(file, 'utf-8'); // Read the story file
+      const metadata = extractMetadata(code, file); // Extract metadata
 
       components.push({
         name: metadata.name,
