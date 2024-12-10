@@ -1,6 +1,6 @@
 {
   "name": "storybook-addon-downloadprefab",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "It will download a prefab zip",
   "main": "addon/index.cjs",
   "keywords": [
@@ -30,6 +30,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "utils",
     "dist/**/*",
     "README.md",
     "*.js",
@@ -46,7 +47,8 @@
     "eject-ts": "zx scripts/eject-typescript.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-   "postinstall": "node ./utils/generateConfig.cjs"
+    "postinstall": "node ./node_modules/storybook-addon-downloadprefab/utils/generateConfig.cjs"
+
 
   
   },
